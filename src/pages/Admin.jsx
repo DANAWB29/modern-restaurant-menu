@@ -79,26 +79,65 @@ const Admin = () => {
 
     const saveMenuItems = async (items) => {
         try {
-            // Check if GitHub is configured
-            if (!realtimeMenuService.canSave()) {
-                setShowGitHubSetup(true)
-                toast.error('GitHub integration required for automatic updates!')
-                return
-            }
+            // Always save locally first
+            localStorage.setItem('menuItems', JSON.stringify(items))
+            setMenuItems(items)
 
-            // Save using real-time menu service
-            const result = await realtimeMenuService.saveMenuData(items)
+            // Try GitHub integration if configured
+            if (realtimeMenuService.canSave()) {
+                const result = await realtimeMenuService.saveMenuData(items)
 
-            if (result.success) {
-                setMenuItems(items)
-                toast.success(result.message)
+                if (result.success) {
+                    toast.success('Menu saved and synced to GitHub! 🚀')
+                } else {
+                    // GitHub failed, but local save succeeded
+                    downloadMenuFile(items)
+                    toast.success('Menu saved locally! File downloaded for manual deployment.')
+                }
             } else {
-                toast.error('Failed to save menu: ' + result.error)
+                // No GitHub integration, provide manual download
+                downloadMenuFile(items)
+                toast.success('Menu saved! File downloaded - replace public/menu-data.json and redeploy.')
             }
         } catch (error) {
             console.error('Error saving menu items:', error)
-            toast.error('Failed to save menu items: ' + error.message)
+            // Even if everything fails, try to save locally
+            try {
+                localStorage.setItem('menuItems', JSON.stringify(items))
+                setMenuItems(items)
+                downloadMenuFile(items)
+                toast.success('Menu saved locally with backup file download.')
+            } catch (localError) {
+                toast.error('Failed to save menu: ' + error.message)
+            }
         }
+    }
+
+    const downloadMenuFile = (items) => {
+        const menuData = {
+            lastUpdated: new Date().toISOString(),
+            categories: [
+                { id: 'all', name: 'All Items', icon: '🍽️' },
+                { id: 'breakfast', name: 'Breakfast', icon: '🌅' },
+                { id: 'lunch', name: 'Lunch', icon: '🌞' },
+                { id: 'dinner', name: 'Dinner', icon: '🌙' },
+                { id: 'drinks', name: 'Drinks', icon: '🥤' },
+                { id: 'desserts', name: 'Desserts', icon: '🍰' }
+            ],
+            items: items
+        }
+
+        const dataStr = JSON.stringify(menuData, null, 2)
+        const dataBlob = new Blob([dataStr], { type: 'application/json' })
+        const url = URL.createObjectURL(dataBlob)
+
+        const link = document.createElement('a')
+        link.href = url
+        link.download = 'menu-data.json'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
     }
 
     const setupGitHub = () => {
