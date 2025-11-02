@@ -1,0 +1,194 @@
+// Sample menu data - easily replaceable
+export const menuCategories = [
+    { id: 'all', name: 'All Items', icon: '🍽️' },
+    { id: 'breakfast', name: 'Breakfast', icon: '🌅' },
+    { id: 'lunch', name: 'Lunch', icon: '🌞' },
+    { id: 'dinner', name: 'Dinner', icon: '🌙' },
+    { id: 'drinks', name: 'Drinks', icon: '🥤' },
+    { id: 'desserts', name: 'Desserts', icon: '🍰' }
+]
+
+export const sampleMenuItems = [
+    // Breakfast
+    {
+        id: 1,
+        name: 'Golden Pancakes',
+        price: 12.99,
+        category: 'breakfast',
+        description: 'Fluffy pancakes with maple syrup and fresh berries',
+        image: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&h=300&fit=crop',
+        featured: true
+    },
+    {
+        id: 2,
+        name: 'Avocado Toast Supreme',
+        price: 14.99,
+        category: 'breakfast',
+        description: 'Artisan bread with smashed avocado, poached egg, and microgreens',
+        image: 'https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?w=400&h=300&fit=crop',
+        featured: false
+    },
+    {
+        id: 3,
+        name: 'Classic Benedict',
+        price: 16.99,
+        category: 'breakfast',
+        description: 'English muffin with ham, poached eggs, and hollandaise sauce',
+        image: 'https://images.unsplash.com/photo-1608039829572-78524f79c4c7?w=400&h=300&fit=crop',
+        featured: true
+    },
+
+    // Lunch
+    {
+        id: 4,
+        name: 'Gourmet Burger',
+        price: 18.99,
+        category: 'lunch',
+        description: 'Wagyu beef patty with truffle aioli, arugula, and aged cheddar',
+        image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
+        featured: true
+    },
+    {
+        id: 5,
+        name: 'Caesar Salad Deluxe',
+        price: 15.99,
+        category: 'lunch',
+        description: 'Crisp romaine, parmesan, croutons, and grilled chicken',
+        image: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400&h=300&fit=crop',
+        featured: false
+    },
+    {
+        id: 6,
+        name: 'Truffle Pasta',
+        price: 22.99,
+        category: 'lunch',
+        description: 'Fresh fettuccine with black truffle, mushrooms, and parmesan',
+        image: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400&h=300&fit=crop',
+        featured: true
+    },
+
+    // Dinner
+    {
+        id: 7,
+        name: 'Grilled Salmon',
+        price: 28.99,
+        category: 'dinner',
+        description: 'Atlantic salmon with lemon herb butter and seasonal vegetables',
+        image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop',
+        featured: true
+    },
+    {
+        id: 8,
+        name: 'Ribeye Steak',
+        price: 35.99,
+        category: 'dinner',
+        description: 'Prime ribeye with garlic mashed potatoes and red wine jus',
+        image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=300&fit=crop',
+        featured: true
+    },
+    {
+        id: 9,
+        name: 'Lobster Risotto',
+        price: 32.99,
+        category: 'dinner',
+        description: 'Creamy arborio rice with fresh lobster and saffron',
+        image: 'https://images.unsplash.com/photo-1563379091339-03246963d96c?w=400&h=300&fit=crop',
+        featured: false
+    },
+
+    // Drinks
+    {
+        id: 10,
+        name: 'Golden Sunset',
+        price: 12.99,
+        category: 'drinks',
+        description: 'Signature cocktail with bourbon, honey, and citrus',
+        image: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=400&h=300&fit=crop',
+        featured: false
+    },
+    {
+        id: 11,
+        name: 'Fresh Lemonade',
+        price: 6.99,
+        category: 'drinks',
+        description: 'House-made lemonade with fresh mint and sparkling water',
+        image: 'https://images.unsplash.com/photo-1523371683702-bf4bb2111b2c?w=400&h=300&fit=crop',
+        featured: false
+    },
+    {
+        id: 12,
+        name: 'Craft Coffee',
+        price: 4.99,
+        category: 'drinks',
+        description: 'Single-origin coffee beans, expertly roasted and brewed',
+        image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&h=300&fit=crop',
+        featured: false
+    },
+
+    // Desserts
+    {
+        id: 13,
+        name: 'Chocolate Lava Cake',
+        price: 9.99,
+        category: 'desserts',
+        description: 'Warm chocolate cake with molten center and vanilla ice cream',
+        image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&h=300&fit=crop',
+        featured: true
+    },
+    {
+        id: 14,
+        name: 'Crème Brûlée',
+        price: 8.99,
+        category: 'desserts',
+        description: 'Classic vanilla custard with caramelized sugar crust',
+        image: 'https://images.unsplash.com/photo-1470324161839-ce2bb6fa6bc3?w=400&h=300&fit=crop',
+        featured: false
+    },
+    {
+        id: 15,
+        name: 'Tiramisu',
+        price: 10.99,
+        category: 'desserts',
+        description: 'Traditional Italian dessert with coffee-soaked ladyfingers',
+        image: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400&h=300&fit=crop',
+        featured: false
+    }
+]
+
+// Restaurant background images for slideshow
+export const restaurantImages = [
+    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop',
+    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1920&h=1080&fit=crop',
+    'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1920&h=1080&fit=crop',
+    'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=1920&h=1080&fit=crop'
+]
+
+// Restaurant configuration - easily customizable
+export const restaurantConfig = {
+    name: 'Golden Spoon',
+    tagline: 'Premium Culinary Experience',
+    description: 'Where exceptional flavors meet elegant dining',
+    phone: '+1 (555) 123-4567',
+    address: '123 Gourmet Street, Culinary District, CD 12345',
+    hours: {
+        weekdays: '11:00 AM - 10:00 PM',
+        weekends: '10:00 AM - 11:00 PM'
+    },
+    social: {
+        instagram: '#',
+        facebook: '#',
+        twitter: '#',
+        youtube: '#'
+    },
+    // Payment configuration
+    payment: {
+        telebirr: {
+            phone: '0941165124',
+            link: 'https://telebirr.et/payment'
+        },
+        cbe: {
+            account: '1000580304641',
+            link: 'https://cbe.com.et/mobile-banking'
+        }
+    }
+}
