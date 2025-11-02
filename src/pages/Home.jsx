@@ -7,11 +7,15 @@ import FeaturedCarousel from '../components/FeaturedCarousel'
 import MenuCard from '../components/MenuCard'
 import MenuFilters from '../components/MenuFilters'
 import { sampleMenuItems, menuCategories, restaurantConfig } from '../data/menuData'
+import menuService from '../services/menuService'
+import toast from 'react-hot-toast'
 
 const Home = () => {
     const [menuItems, setMenuItems] = useState(sampleMenuItems)
+    const [categories, setCategories] = useState(menuCategories)
     const [activeCategory, setActiveCategory] = useState('all')
     const [priceRange, setPriceRange] = useState({ id: 'all', min: 0, max: Infinity })
+    const [loading, setLoading] = useState(true)
 
     // Get featured items
     const featuredItems = menuItems.filter(item => item.featured)
@@ -23,14 +27,32 @@ const Home = () => {
         return matchesCategory && matchesPrice
     })
 
-    // Load menu items from localStorage on component mount
+    // Load menu items from global service
     useEffect(() => {
-        // Load from GLOBAL storage - all devices see the same menu
-        const savedItems = localStorage.getItem('menuItems')
-        if (savedItems) {
-            setMenuItems(JSON.parse(savedItems))
-        }
+        loadGlobalMenuData()
+
+        // Set up periodic refresh to check for updates
+        const interval = setInterval(loadGlobalMenuData, 60000) // Check every minute
+
+        return () => clearInterval(interval)
     }, [])
+
+    const loadGlobalMenuData = async () => {
+        try {
+            const data = await menuService.loadMenuData()
+            if (data.items) {
+                setMenuItems(data.items)
+            }
+            if (data.categories) {
+                setCategories(data.categories)
+            }
+        } catch (error) {
+            console.error('Error loading menu:', error)
+            toast.error('Failed to load latest menu. Using cached version.')
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const scrollToMenu = () => {
         document.getElementById('menu-section')?.scrollIntoView({
@@ -142,7 +164,7 @@ const Home = () => {
 
                     {/* Filters */}
                     <MenuFilters
-                        categories={menuCategories}
+                        categories={categories}
                         activeCategory={activeCategory}
                         setActiveCategory={setActiveCategory}
                         priceRange={priceRange}

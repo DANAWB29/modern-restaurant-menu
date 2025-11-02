@@ -150,6 +150,21 @@ payment: {
 }
 ```
 
+## 🌐 Global Menu Updates
+
+### Admin Panel (Restaurant Device Only)
+- **Secure Access**: Only registered restaurant devices can access `/admin`
+- **Menu Management**: Add, edit, delete menu items with full CRUD operations
+- **Global Impact**: Changes affect all devices worldwide after deployment
+
+### Update Process:
+1. **Admin makes changes** → Downloads `menu-data.json` file
+2. **Replace file** in `public/menu-data.json` 
+3. **Redeploy** → `git push` triggers automatic deployment
+4. **Global update** → All devices see changes in 2-3 minutes
+
+For detailed instructions, see [GLOBAL_MENU_UPDATE.md](./GLOBAL_MENU_UPDATE.md)
+
 ## 🔧 Available Scripts
 
 ```bash

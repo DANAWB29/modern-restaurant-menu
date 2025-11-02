@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Edit, Trash2, Save, X, Eye, EyeOff, LogOut, Shield, AlertTriangle } from 'lucide-react'
+import { Plus, Edit, Trash2, Save, X, Eye, EyeOff, LogOut, Shield, AlertTriangle, Download, RefreshCw } from 'lucide-react'
 import { sampleMenuItems, menuCategories } from '../data/menuData'
+import menuService from '../services/menuService'
 import toast from 'react-hot-toast'
 
 const Admin = () => {
@@ -50,27 +51,41 @@ const Admin = () => {
         }
     }, [])
 
-    const loadMenuItems = () => {
-        // Load from GLOBAL storage - same as all other devices
-        const savedItems = localStorage.getItem('menuItems')
-        if (savedItems) {
-            setMenuItems(JSON.parse(savedItems))
-        } else {
-            // First time setup - use sample data
-            setMenuItems(sampleMenuItems)
+    const loadMenuItems = async () => {
+        try {
+            const data = await menuService.loadMenuData()
+            if (data.items) {
+                setMenuItems(data.items)
+            } else {
+                setMenuItems(sampleMenuItems)
+            }
+        } catch (error) {
+            console.error('Error loading menu items:', error)
+            // Fallback to localStorage
+            const savedItems = localStorage.getItem('menuItems')
+            if (savedItems) {
+                setMenuItems(JSON.parse(savedItems))
+            } else {
+                setMenuItems(sampleMenuItems)
+            }
         }
     }
 
-    const saveMenuItems = (items) => {
-        // Save to GLOBAL storage - affects ALL devices
-        localStorage.setItem('menuItems', JSON.stringify(items))
-        setMenuItems(items)
+    const saveMenuItems = async (items) => {
+        try {
+            // Save using global menu service
+            const result = await menuService.saveMenuData(items)
 
-        // Also save to device-specific storage for backup
-        const deviceKey = `menuItems_${deviceId}`
-        localStorage.setItem(deviceKey, JSON.stringify(items))
-
-        toast.success('Menu updated globally for all devices!')
+            if (result.success) {
+                setMenuItems(items)
+                toast.success('Menu updated! Download the file to deploy globally.')
+            } else {
+                toast.error('Failed to save menu: ' + result.error)
+            }
+        } catch (error) {
+            console.error('Error saving menu items:', error)
+            toast.error('Failed to save menu items')
+        }
     }
 
     const registerAsRestaurantDevice = () => {
@@ -353,6 +368,16 @@ const Admin = () => {
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
+                            onClick={loadMenuItems}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center space-x-2"
+                        >
+                            <RefreshCw className="w-5 h-5" />
+                            <span>Refresh</span>
+                        </motion.button>
+
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={handleLogout}
                             className="btn-secondary flex items-center space-x-2"
                         >
@@ -374,7 +399,7 @@ const Admin = () => {
                             <Shield className="w-5 h-5 text-green-400" />
                             <div>
                                 <h3 className="text-green-400 font-semibold">Restaurant Admin Device</h3>
-                                <p className="text-dark-400 text-sm">Changes made here will update the menu for ALL devices globally</p>
+                                <p className="text-dark-400 text-sm">Save changes → Download file → Replace in project → Redeploy = Global update!</p>
                             </div>
                         </div>
                         <div className="text-right">
