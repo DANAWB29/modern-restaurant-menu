@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Edit, Trash2, Save, X, Eye, EyeOff, LogOut, Shield, AlertTriangle, Download, RefreshCw } from 'lucide-react'
 import { sampleMenuItems, menuCategories } from '../data/menuData'
-import autoMenuService from '../services/autoMenuService'
+import simpleAutoService from '../services/simpleAutoService'
 import toast from 'react-hot-toast'
 
 const Admin = () => {
@@ -56,7 +56,7 @@ const Admin = () => {
 
     const loadMenuItems = async () => {
         try {
-            const data = await autoMenuService.loadMenuData()
+            const data = await simpleAutoService.loadMenuData()
             if (data.items) {
                 setMenuItems(data.items)
             } else {
@@ -64,7 +64,7 @@ const Admin = () => {
             }
 
             // Update service status
-            setRealtimeStatus(autoMenuService.getStatus())
+            setRealtimeStatus(simpleAutoService.getStatus())
         } catch (error) {
             console.error('Error loading menu items:', error)
             // Fallback to localStorage
@@ -83,8 +83,8 @@ const Admin = () => {
             localStorage.setItem('menuItems', JSON.stringify(items))
             setMenuItems(items)
 
-            // Try automatic sync
-            const result = await autoMenuService.saveMenuData(items)
+            // Try automatic sync with GitHub Gist
+            const result = await simpleAutoService.saveMenuData(items)
 
             if (result.success) {
                 toast.success(result.message)
