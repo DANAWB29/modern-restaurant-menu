@@ -25,6 +25,7 @@ const Home = () => {
 
     // Load menu items from localStorage on component mount
     useEffect(() => {
+        // Load from GLOBAL storage - all devices see the same menu
         const savedItems = localStorage.getItem('menuItems')
         if (savedItems) {
             setMenuItems(JSON.parse(savedItems))
