@@ -7,7 +7,7 @@ import FeaturedCarousel from '../components/FeaturedCarousel'
 import MenuCard from '../components/MenuCard'
 import MenuFilters from '../components/MenuFilters'
 import { sampleMenuItems, menuCategories, restaurantConfig } from '../data/menuData'
-import jsonbinMenuService from '../services/jsonbinMenuService'
+import autoMenuService from '../services/autoMenuService'
 import toast from 'react-hot-toast'
 
 const Home = () => {
@@ -47,13 +47,13 @@ const Home = () => {
 
         return () => {
             window.removeEventListener('menuUpdated', handleMenuUpdate)
-            jsonbinMenuService.stopAutoRefresh()
+            autoMenuService.stopAutoRefresh()
         }
     }, [])
 
     const initializeRealtimeMenu = async () => {
         try {
-            const data = await jsonbinMenuService.initialize()
+            const data = await autoMenuService.initialize()
             if (data.items) {
                 setMenuItems(data.items)
             }

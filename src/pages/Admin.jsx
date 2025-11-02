@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Edit, Trash2, Save, X, Eye, EyeOff, LogOut, Shield, AlertTriangle, Download, RefreshCw } from 'lucide-react'
 import { sampleMenuItems, menuCategories } from '../data/menuData'
-import jsonbinMenuService from '../services/jsonbinMenuService'
+import autoMenuService from '../services/autoMenuService'
 import toast from 'react-hot-toast'
 
 const Admin = () => {
@@ -56,7 +56,7 @@ const Admin = () => {
 
     const loadMenuItems = async () => {
         try {
-            const data = await jsonbinMenuService.loadMenuData()
+            const data = await autoMenuService.loadMenuData()
             if (data.items) {
                 setMenuItems(data.items)
             } else {
@@ -64,7 +64,7 @@ const Admin = () => {
             }
 
             // Update service status
-            setRealtimeStatus(jsonbinMenuService.getStatus())
+            setRealtimeStatus(autoMenuService.getStatus())
         } catch (error) {
             console.error('Error loading menu items:', error)
             // Fallback to localStorage
@@ -83,13 +83,13 @@ const Admin = () => {
             localStorage.setItem('menuItems', JSON.stringify(items))
             setMenuItems(items)
 
-            // Try JSONBin automatic sync
-            const result = await jsonbinMenuService.saveMenuData(items)
+            // Try automatic sync
+            const result = await autoMenuService.saveMenuData(items)
 
             if (result.success) {
                 toast.success(result.message)
             } else {
-                // JSONBin failed, but local save succeeded
+                // Auto sync failed, but local save succeeded
                 downloadMenuFile(items)
                 toast.success('Menu saved locally! File downloaded for manual deployment.')
             }
