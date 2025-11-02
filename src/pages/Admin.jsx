@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Edit, Trash2, Save, X, Eye, EyeOff, LogOut, Shield, AlertTriangle, Download, RefreshCw } from 'lucide-react'
 import { sampleMenuItems, menuCategories } from '../data/menuData'
-import realtimeMenuService from '../services/realtimeMenuService'
+import jsonbinMenuService from '../services/jsonbinMenuService'
 import toast from 'react-hot-toast'
 
 const Admin = () => {
@@ -56,15 +56,15 @@ const Admin = () => {
 
     const loadMenuItems = async () => {
         try {
-            const data = await realtimeMenuService.loadMenuData()
+            const data = await jsonbinMenuService.loadMenuData()
             if (data.items) {
                 setMenuItems(data.items)
             } else {
                 setMenuItems(sampleMenuItems)
             }
 
-            // Update realtime status
-            setRealtimeStatus(realtimeMenuService.getStatus())
+            // Update service status
+            setRealtimeStatus(jsonbinMenuService.getStatus())
         } catch (error) {
             console.error('Error loading menu items:', error)
             // Fallback to localStorage
@@ -83,21 +83,15 @@ const Admin = () => {
             localStorage.setItem('menuItems', JSON.stringify(items))
             setMenuItems(items)
 
-            // Try GitHub integration if configured
-            if (realtimeMenuService.canSave()) {
-                const result = await realtimeMenuService.saveMenuData(items)
+            // Try JSONBin automatic sync
+            const result = await jsonbinMenuService.saveMenuData(items)
 
-                if (result.success) {
-                    toast.success('Menu saved and synced to GitHub! 🚀')
-                } else {
-                    // GitHub failed, but local save succeeded
-                    downloadMenuFile(items)
-                    toast.success('Menu saved locally! File downloaded for manual deployment.')
-                }
+            if (result.success) {
+                toast.success(result.message)
             } else {
-                // No GitHub integration, provide manual download
+                // JSONBin failed, but local save succeeded
                 downloadMenuFile(items)
-                toast.success('Menu saved! File downloaded - replace public/menu-data.json and redeploy.')
+                toast.success('Menu saved locally! File downloaded for manual deployment.')
             }
         } catch (error) {
             console.error('Error saving menu items:', error)
