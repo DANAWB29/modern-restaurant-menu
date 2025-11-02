@@ -4,7 +4,7 @@
 class JSONBinMenuService {
     constructor() {
         // JSONBin configuration - free service, no signup required for read
-        this.binId = 'YOUR_BIN_ID' // You'll get this after creating a bin
+        this.binId = '6907deb643b1c97be9949c54' // You'll get this after creating a bin
         this.apiKey = 'YOUR_API_KEY' // Optional, for write access
         this.baseUrl = 'https://api.jsonbin.io/v3'
 
