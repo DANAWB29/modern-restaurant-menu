@@ -129,7 +129,7 @@ class RealtimeMenuService {
                 },
                 body: JSON.stringify({
                     message: `Update menu items - ${new Date().toLocaleString()}`,
-                    content: btoa(JSON.stringify(menuData, null, 2)), // Base64 encode
+                    content: this.utf8ToBase64(JSON.stringify(menuData, null, 2)), // UTF-8 safe Base64 encode
                     sha: currentFile.sha
                 })
             })
@@ -231,6 +231,19 @@ class RealtimeMenuService {
     // Check if admin can save (has token)
     canSave() {
         return !!(this.githubToken && this.isConfigured())
+    }
+
+    // UTF-8 safe base64 encoding
+    utf8ToBase64(str) {
+        try {
+            // Convert string to UTF-8 bytes, then to base64
+            return btoa(unescape(encodeURIComponent(str)))
+        } catch (error) {
+            console.error('Base64 encoding error:', error)
+            // Fallback: remove problematic characters and try again
+            const cleanStr = str.replace(/[^\x00-\x7F]/g, '') // Remove non-ASCII characters
+            return btoa(cleanStr)
+        }
     }
 
     // Get configuration status
