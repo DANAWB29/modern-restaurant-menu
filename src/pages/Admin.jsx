@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Edit, Trash2, Save, X, Eye, EyeOff, LogOut, Shield, AlertTriangle, Download, RefreshCw } from 'lucide-react'
 import { sampleMenuItems, menuCategories } from '../data/menuData'
-import menuService from '../services/menuService'
+import realtimeMenuService from '../services/realtimeMenuService'
 import toast from 'react-hot-toast'
 
 const Admin = () => {
@@ -15,6 +15,9 @@ const Admin = () => {
     const [deviceId, setDeviceId] = useState('')
     const [isRestaurantDevice, setIsRestaurantDevice] = useState(false)
     const [showDeviceSetup, setShowDeviceSetup] = useState(false)
+    const [githubToken, setGithubToken] = useState('')
+    const [showGitHubSetup, setShowGitHubSetup] = useState(false)
+    const [realtimeStatus, setRealtimeStatus] = useState(null)
 
     const [formData, setFormData] = useState({
         id: '',
@@ -53,12 +56,15 @@ const Admin = () => {
 
     const loadMenuItems = async () => {
         try {
-            const data = await menuService.loadMenuData()
+            const data = await realtimeMenuService.loadMenuData()
             if (data.items) {
                 setMenuItems(data.items)
             } else {
                 setMenuItems(sampleMenuItems)
             }
+
+            // Update realtime status
+            setRealtimeStatus(realtimeMenuService.getStatus())
         } catch (error) {
             console.error('Error loading menu items:', error)
             // Fallback to localStorage
@@ -73,18 +79,36 @@ const Admin = () => {
 
     const saveMenuItems = async (items) => {
         try {
-            // Save using global menu service
-            const result = await menuService.saveMenuData(items)
+            // Check if GitHub is configured
+            if (!realtimeMenuService.canSave()) {
+                setShowGitHubSetup(true)
+                toast.error('GitHub integration required for automatic updates!')
+                return
+            }
+
+            // Save using real-time menu service
+            const result = await realtimeMenuService.saveMenuData(items)
 
             if (result.success) {
                 setMenuItems(items)
-                toast.success('Menu updated! Download the file to deploy globally.')
+                toast.success(result.message)
             } else {
                 toast.error('Failed to save menu: ' + result.error)
             }
         } catch (error) {
             console.error('Error saving menu items:', error)
-            toast.error('Failed to save menu items')
+            toast.error('Failed to save menu items: ' + error.message)
+        }
+    }
+
+    const setupGitHub = () => {
+        if (githubToken.trim()) {
+            realtimeMenuService.setGitHubToken(githubToken.trim())
+            setShowGitHubSetup(false)
+            setRealtimeStatus(realtimeMenuService.getStatus())
+            toast.success('GitHub integration configured! You can now save changes automatically.')
+        } else {
+            toast.error('Please enter a valid GitHub token')
         }
     }
 
@@ -365,6 +389,18 @@ const Admin = () => {
                             <span>Add Item</span>
                         </motion.button>
 
+                        {!realtimeStatus?.canSave && (
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => setShowGitHubSetup(true)}
+                                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center space-x-2"
+                            >
+                                <Download className="w-5 h-5" />
+                                <span>Setup Auto-Update</span>
+                            </motion.button>
+                        )}
+
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -399,7 +435,12 @@ const Admin = () => {
                             <Shield className="w-5 h-5 text-green-400" />
                             <div>
                                 <h3 className="text-green-400 font-semibold">Restaurant Admin Device</h3>
-                                <p className="text-dark-400 text-sm">Save changes → Download file → Replace in project → Redeploy = Global update!</p>
+                                <p className="text-dark-400 text-sm">
+                                    {realtimeStatus?.canSave
+                                        ? '🚀 Real-time updates enabled! Changes appear on all devices instantly.'
+                                        : '⚙️ Configure GitHub integration for automatic updates.'
+                                    }
+                                </p>
                             </div>
                         </div>
                         <div className="text-right">
@@ -427,6 +468,85 @@ const Admin = () => {
                         )
                     })}
                 </motion.div>
+
+                {/* GitHub Setup Modal */}
+                {showGitHubSetup && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="glass-effect rounded-2xl p-8 w-full max-w-2xl"
+                        >
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-white">GitHub Integration Setup</h2>
+                                <button
+                                    onClick={() => setShowGitHubSetup(false)}
+                                    className="p-2 hover:bg-dark-700 rounded-lg transition-colors"
+                                >
+                                    <X className="w-6 h-6 text-dark-400" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+                                    <h3 className="text-blue-300 font-semibold mb-2">🚀 Automatic Updates</h3>
+                                    <p className="text-blue-200 text-sm">
+                                        Configure GitHub integration to enable automatic menu updates across all devices in real-time!
+                                    </p>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-white font-semibold mb-2">
+                                            GitHub Personal Access Token
+                                        </label>
+                                        <input
+                                            type="password"
+                                            value={githubToken}
+                                            onChange={(e) => setGithubToken(e.target.value)}
+                                            placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                                            className="w-full px-4 py-3 bg-dark-800/50 border border-dark-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-white font-mono"
+                                        />
+                                        <p className="text-dark-400 text-sm mt-2">
+                                            Create a token at: <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="text-primary-400 hover:text-primary-300">GitHub Settings → Developer settings → Personal access tokens</a>
+                                        </p>
+                                    </div>
+
+                                    <div className="bg-dark-800/50 rounded-xl p-4">
+                                        <h4 className="text-dark-200 font-semibold mb-2">Required Token Permissions:</h4>
+                                        <ul className="text-dark-300 text-sm space-y-1">
+                                            <li>✅ <code>repo</code> - Full repository access</li>
+                                            <li>✅ <code>contents:write</code> - Modify repository contents</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div className="flex space-x-4">
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={setupGitHub}
+                                        className="btn-primary flex items-center space-x-2"
+                                    >
+                                        <Save className="w-5 h-5" />
+                                        <span>Configure GitHub</span>
+                                    </motion.button>
+
+                                    <button
+                                        onClick={() => setShowGitHubSetup(false)}
+                                        className="btn-secondary"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
 
                 {/* Add/Edit Form Modal */}
                 {showAddForm && (

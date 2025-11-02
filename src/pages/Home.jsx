@@ -7,7 +7,7 @@ import FeaturedCarousel from '../components/FeaturedCarousel'
 import MenuCard from '../components/MenuCard'
 import MenuFilters from '../components/MenuFilters'
 import { sampleMenuItems, menuCategories, restaurantConfig } from '../data/menuData'
-import menuService from '../services/menuService'
+import realtimeMenuService from '../services/realtimeMenuService'
 import toast from 'react-hot-toast'
 
 const Home = () => {
@@ -27,19 +27,33 @@ const Home = () => {
         return matchesCategory && matchesPrice
     })
 
-    // Load menu items from global service
+    // Load menu items from real-time service
     useEffect(() => {
-        loadGlobalMenuData()
+        initializeRealtimeMenu()
 
-        // Set up periodic refresh to check for updates
-        const interval = setInterval(loadGlobalMenuData, 60000) // Check every minute
+        // Listen for real-time menu updates
+        const handleMenuUpdate = (event) => {
+            const newData = event.detail
+            if (newData.items) {
+                setMenuItems(newData.items)
+                toast.success('Menu updated! 🍽️')
+            }
+            if (newData.categories) {
+                setCategories(newData.categories)
+            }
+        }
 
-        return () => clearInterval(interval)
+        window.addEventListener('menuUpdated', handleMenuUpdate)
+
+        return () => {
+            window.removeEventListener('menuUpdated', handleMenuUpdate)
+            realtimeMenuService.stopAutoRefresh()
+        }
     }, [])
 
-    const loadGlobalMenuData = async () => {
+    const initializeRealtimeMenu = async () => {
         try {
-            const data = await menuService.loadMenuData()
+            const data = await realtimeMenuService.initialize()
             if (data.items) {
                 setMenuItems(data.items)
             }

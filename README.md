@@ -150,20 +150,24 @@ payment: {
 }
 ```
 
-## 🌐 Global Menu Updates
+## 🚀 Real-time Menu Updates
 
-### Admin Panel (Restaurant Device Only)
-- **Secure Access**: Only registered restaurant devices can access `/admin`
-- **Menu Management**: Add, edit, delete menu items with full CRUD operations
-- **Global Impact**: Changes affect all devices worldwide after deployment
+### Automatic Updates (Recommended)
+- **Instant Global Updates**: Changes appear on ALL devices within 10 seconds
+- **GitHub Integration**: Uses GitHub API for real-time synchronization
+- **Zero Deployment**: No manual file replacement or redeployment needed
+- **Secure Admin**: Only registered restaurant devices can make changes
 
-### Update Process:
-1. **Admin makes changes** → Downloads `menu-data.json` file
-2. **Replace file** in `public/menu-data.json` 
-3. **Redeploy** → `git push` triggers automatic deployment
-4. **Global update** → All devices see changes in 2-3 minutes
+### Setup Process:
+1. **Configure GitHub**: Update username/repo in `src/services/realtimeMenuService.js`
+2. **Create GitHub Token**: Generate personal access token with repo permissions
+3. **Admin Setup**: Enter token in admin panel setup modal
+4. **Start Using**: Make changes and see them appear everywhere instantly!
 
-For detailed instructions, see [GLOBAL_MENU_UPDATE.md](./GLOBAL_MENU_UPDATE.md)
+For detailed setup instructions, see [AUTOMATIC_UPDATES_SETUP.md](./AUTOMATIC_UPDATES_SETUP.md)
+
+### Manual Updates (Fallback)
+If you prefer manual deployment, see [GLOBAL_MENU_UPDATE.md](./GLOBAL_MENU_UPDATE.md)
 
 ## 🔧 Available Scripts
 
