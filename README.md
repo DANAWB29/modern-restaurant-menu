@@ -48,11 +48,22 @@ cd modern-restaurant-menu
 # Install dependencies
 npm install
 
+# Set up Supabase (for real-time sync across devices)
+# Follow the detailed guide: SUPABASE_SETUP_GUIDE.md
+# Or skip for local-only mode
+
 # Start development server
 npm run dev
 ```
 
 The app will be available at `http://localhost:5173`
+
+### 🔄 **Real-time Sync Setup**
+For cross-device menu synchronization, follow our comprehensive [Supabase Setup Guide](./SUPABASE_SETUP_GUIDE.md). This enables:
+- ✅ Real-time updates across all devices
+- ✅ Automatic data backup
+- ✅ Scalable cloud database
+- ✅ Free tier with 50,000 monthly users
 
 ### 🌐 Live Demo
 - **Live App**: [https://your-app-name.vercel.app](https://your-app-name.vercel.app)

@@ -7,7 +7,7 @@ import FeaturedCarousel from '../components/FeaturedCarousel'
 import MenuCard from '../components/MenuCard'
 import MenuFilters from '../components/MenuFilters'
 import { sampleMenuItems, menuCategories, restaurantConfig } from '../data/menuData'
-import localSyncService from '../services/localSyncService'
+import supabaseService from '../services/supabaseService'
 import toast from 'react-hot-toast'
 
 const Home = () => {
@@ -48,15 +48,15 @@ const Home = () => {
 
         return () => {
             window.removeEventListener('menuUpdated', handleMenuUpdate)
-            if (localSyncService.stopAutoRefresh) {
-                localSyncService.stopAutoRefresh()
+            if (supabaseService.cleanup) {
+                supabaseService.cleanup()
             }
         }
     }, [])
 
     const initializeRealtimeMenu = async () => {
         try {
-            const data = await localSyncService.initialize()
+            const data = await supabaseService.initialize()
             if (data.items) {
                 setMenuItems(data.items)
             }
