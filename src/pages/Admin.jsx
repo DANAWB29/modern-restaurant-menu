@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Edit, Trash2, Save, X, Eye, EyeOff, LogOut, Shield, AlertTriangle, Download, RefreshCw } from 'lucide-react'
 import { sampleMenuItems, menuCategories } from '../data/menuData'
-import simpleAutoService from '../services/simpleAutoService'
+import localSyncService from '../services/localSyncService'
 import toast from 'react-hot-toast'
 
 const Admin = () => {
@@ -56,7 +56,7 @@ const Admin = () => {
 
     const loadMenuItems = async () => {
         try {
-            const data = await simpleAutoService.loadMenuData()
+            const data = await localSyncService.loadMenuData()
             if (data.items) {
                 setMenuItems(data.items)
             } else {
@@ -80,8 +80,8 @@ const Admin = () => {
             localStorage.setItem('menuItems', JSON.stringify(items))
             setMenuItems(items)
 
-            // Try automatic sync with GitHub Gist
-            const result = await simpleAutoService.saveMenuData(items)
+            // Save with local sync service
+            const result = await localSyncService.saveMenuData(items)
 
             if (result.success) {
                 toast.success(result.message)
@@ -135,7 +135,7 @@ const Admin = () => {
         if (githubToken.trim()) {
             // simpleAutoService doesn't need GitHub token setup - it works automatically
             setShowGitHubSetup(false)
-            setRealtimeStatus(simpleAutoService.getStatus())
+            setRealtimeStatus(localSyncService.getStatus())
             toast.success('Automatic updates are already enabled! No configuration needed.')
         } else {
             toast.error('Please enter a valid GitHub token')
