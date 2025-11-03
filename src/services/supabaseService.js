@@ -16,6 +16,10 @@ class SupabaseService {
     // Initialize Supabase client
     async initialize() {
         try {
+            console.log('🔧 Initializing Supabase...')
+            console.log('📍 URL:', SUPABASE_URL)
+            console.log('🔑 Key:', SUPABASE_ANON_KEY ? 'Present' : 'Missing')
+
             if (!SUPABASE_URL || !SUPABASE_ANON_KEY ||
                 SUPABASE_URL === 'YOUR_SUPABASE_URL' ||
                 SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
@@ -27,6 +31,14 @@ class SupabaseService {
             this.isInitialized = true
 
             console.log('✅ Supabase initialized successfully')
+
+            // Test connection
+            const { data, error } = await this.supabase.from('menu_items').select('count', { count: 'exact' })
+            if (error) {
+                console.error('❌ Supabase connection test failed:', error)
+            } else {
+                console.log('✅ Supabase connection test passed')
+            }
 
             // Set up real-time subscription
             this.setupRealtimeSubscription()
@@ -122,9 +134,26 @@ class SupabaseService {
     // Save menu data
     async saveMenuData(items) {
         try {
+            console.log('💾 Attempting to save', items.length, 'items to Supabase')
+            console.log('🔧 Supabase client:', this.supabase ? 'Available' : 'Not available')
+            console.log('✅ Initialized:', this.isInitialized)
+
             if (!this.supabase) {
                 throw new Error('Supabase not initialized')
             }
+
+            // Test basic connection first
+            console.log('🧪 Testing Supabase connection...')
+            const { data: testData, error: testError } = await this.supabase
+                .from('menu_items')
+                .select('count', { count: 'exact' })
+
+            if (testError) {
+                console.error('❌ Connection test failed:', testError)
+                throw new Error(`Connection failed: ${testError.message}`)
+            }
+
+            console.log('✅ Connection test passed, current items:', testData)
 
             // Clear existing items
             const { error: deleteError } = await this.supabase

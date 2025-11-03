@@ -79,15 +79,18 @@ const Admin = () => {
             localStorage.setItem('menuItems', JSON.stringify(items))
             setMenuItems(items)
 
-            // Save with local sync service
+            // Save with Supabase service
             const result = await supabaseService.saveMenuData(items)
+
+            console.log('🔍 Save result:', result)
 
             if (result.success) {
                 toast.success(result.message)
             } else {
-                // Auto sync failed, but local save succeeded
+                // Supabase sync failed, show the actual error
+                console.error('❌ Supabase save failed:', result.message)
+                toast.error(`Supabase Error: ${result.message}`)
                 downloadMenuFile(items)
-                toast.success('Menu saved locally! File downloaded for manual deployment.')
             }
         } catch (error) {
             console.error('Error saving menu items:', error)
@@ -419,6 +422,30 @@ const Admin = () => {
                         >
                             <RefreshCw className="w-5 h-5" />
                             <span>Refresh</span>
+                        </motion.button>
+
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={async () => {
+                                console.log('🧪 Testing Supabase connection manually...')
+                                try {
+                                    const status = supabaseService.getStatus()
+                                    console.log('📊 Service status:', status)
+
+                                    const testResult = await supabaseService.initialize()
+                                    console.log('🔍 Initialize result:', testResult)
+
+                                    toast.success('Check console for connection details')
+                                } catch (error) {
+                                    console.error('❌ Test failed:', error)
+                                    toast.error('Connection test failed - check console')
+                                }
+                            }}
+                            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center space-x-2"
+                        >
+                            <span>🧪</span>
+                            <span>Test DB</span>
                         </motion.button>
 
                         <motion.button
