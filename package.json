@@ -35,7 +35,8 @@
         "react-router-dom": "^6.20.1",
         "framer-motion": "^10.16.16",
         "react-hot-toast": "^2.4.1",
-        "lucide-react": "^0.294.0"
+        "lucide-react": "^0.294.0",
+        "@supabase/supabase-js": "^2.38.4"
     },
     "devDependencies": {
         "@types/react": "^18.2.43",

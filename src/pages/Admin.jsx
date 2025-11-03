@@ -62,9 +62,6 @@ const Admin = () => {
             } else {
                 setMenuItems(sampleMenuItems)
             }
-
-            // Update service status
-            setRealtimeStatus(simpleAutoService.getStatus())
         } catch (error) {
             console.error('Error loading menu items:', error)
             // Fallback to localStorage
@@ -136,10 +133,10 @@ const Admin = () => {
 
     const setupGitHub = () => {
         if (githubToken.trim()) {
-            realtimeMenuService.setGitHubToken(githubToken.trim())
+            // simpleAutoService doesn't need GitHub token setup - it works automatically
             setShowGitHubSetup(false)
-            setRealtimeStatus(realtimeMenuService.getStatus())
-            toast.success('GitHub integration configured! You can now save changes automatically.')
+            setRealtimeStatus(simpleAutoService.getStatus())
+            toast.success('Automatic updates are already enabled! No configuration needed.')
         } else {
             toast.error('Please enter a valid GitHub token')
         }

@@ -47,7 +47,9 @@ const Home = () => {
 
         return () => {
             window.removeEventListener('menuUpdated', handleMenuUpdate)
-            simpleAutoService.stopAutoRefresh()
+            if (simpleAutoService.stopAutoRefresh) {
+                simpleAutoService.stopAutoRefresh()
+            }
         }
     }, [])
 
