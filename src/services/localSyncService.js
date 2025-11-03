@@ -112,6 +112,8 @@ class LocalSyncService {
     // Broadcast update to other tabs/windows
     broadcastUpdate(menuData) {
         try {
+            console.log('📡 Broadcasting update with', menuData.items?.length, 'items')
+
             // Use localStorage event for cross-tab communication
             localStorage.setItem('menuUpdateBroadcast', JSON.stringify({
                 timestamp: Date.now(),
@@ -123,7 +125,7 @@ class LocalSyncService {
                 detail: menuData
             }))
 
-            console.log('📡 Update broadcasted to all tabs')
+            console.log('✅ Update broadcasted to all tabs')
         } catch (error) {
             console.warn('Could not broadcast update:', error)
         }
@@ -140,7 +142,7 @@ class LocalSyncService {
             if (e.key === 'menuUpdateBroadcast' && e.newValue) {
                 try {
                     const update = JSON.parse(e.newValue)
-                    console.log('📱 Received update from another tab')
+                    console.log('📱 Received cross-tab update with', update.data.items?.length, 'items')
 
                     // Update cache
                     this.cache = update.data
@@ -150,11 +152,15 @@ class LocalSyncService {
                     window.dispatchEvent(new CustomEvent('menuUpdated', {
                         detail: update.data
                     }))
+
+                    console.log('✅ Cross-tab update dispatched')
                 } catch (error) {
                     console.warn('Error processing cross-tab update:', error)
                 }
             }
         })
+
+        console.log('👂 Listening for cross-tab updates...')
 
         // Check for updates every second
         this.refreshInterval = setInterval(async () => {

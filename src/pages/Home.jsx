@@ -33,10 +33,11 @@ const Home = () => {
 
         // Listen for real-time menu updates
         const handleMenuUpdate = (event) => {
+            console.log('🔄 Home.jsx received menu update:', event.detail)
             const newData = event.detail
             if (newData.items) {
                 setMenuItems(newData.items)
-                // Removed toast notification to prevent spam
+                console.log('📱 Menu items updated in Home.jsx:', newData.items.length, 'items')
             }
             if (newData.categories) {
                 setCategories(newData.categories)
