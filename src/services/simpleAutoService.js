@@ -73,40 +73,8 @@ class SimpleAutoService {
             // Always save locally first
             localStorage.setItem('menuItems', JSON.stringify(items))
 
-            // If no gist ID, create one automatically
-            if (!this.gistId) {
-                return await this.createAutoGist(menuData)
-            }
-
-            // Try to update existing gist (anonymous update)
-            const response = await fetch(`https://api.github.com/gists/${this.gistId}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    files: {
-                        'menu.json': {
-                            content: JSON.stringify(menuData, null, 2)
-                        }
-                    }
-                })
-            })
-
-            if (!response.ok) {
-                // If gist doesn't exist or can't update, create a new one
-                console.warn('Existing gist failed, creating new one')
-                return await this.createAutoGist(menuData)
-            }
-
-            // Clear cache to force refresh
-            this.cache = null
-            this.lastFetch = null
-
-            return {
-                success: true,
-                message: '🚀 Menu updated automatically! Changes are live on all devices within 5 seconds!'
-            }
+            // Always create a new gist for each update (since we can't update anonymously)
+            return await this.createAutoGist(menuData)
         } catch (error) {
             console.error('Error saving menu:', error)
 
@@ -123,13 +91,15 @@ class SimpleAutoService {
     // Create a new GitHub Gist automatically
     async createAutoGist(menuData) {
         try {
+            console.log('Creating new Gist for menu sync...')
+
             const response = await fetch('https://api.github.com/gists', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    description: `Restaurant Menu - ${new Date().toLocaleDateString()}`,
+                    description: `Restaurant Menu - Updated ${new Date().toLocaleString()}`,
                     public: true,
                     files: {
                         'menu.json': {
@@ -140,32 +110,35 @@ class SimpleAutoService {
             })
 
             if (!response.ok) {
+                const errorText = await response.text()
+                console.error('Gist creation failed:', response.status, errorText)
                 throw new Error(`Failed to create Gist: ${response.status}`)
             }
 
             const gist = await response.json()
             const newGistId = gist.id
 
-            // Store the new gist ID
+            // Store the new gist ID (this will be the latest one)
             this.gistId = newGistId
             localStorage.setItem('autoGistId', newGistId)
 
-            // Clear cache
+            // Clear cache to force refresh
             this.cache = null
             this.lastFetch = null
 
-            console.log(`✅ Automatic updates enabled! Gist ID: ${newGistId}`)
+            console.log(`✅ Menu sync enabled! Gist ID: ${newGistId}`)
+            console.log(`🔗 Gist URL: https://gist.github.com/${newGistId}`)
 
             return {
                 success: true,
-                message: '🎉 Automatic updates enabled! Your menu will now sync across all devices within 5 seconds!'
+                message: `🎉 Menu synced! View at: https://gist.github.com/${newGistId}`
             }
         } catch (error) {
             console.error('Error creating Gist:', error)
 
             return {
                 success: true,
-                message: '✅ Menu saved locally! Automatic sync will be enabled on next save.'
+                message: '✅ Menu saved locally! GitHub sync failed - check console for details.'
             }
         }
     }
@@ -176,22 +149,29 @@ class SimpleAutoService {
             clearInterval(this.refreshInterval)
         }
 
+        console.log('🔄 Starting auto-refresh every 5 seconds...')
+
         this.refreshInterval = setInterval(async () => {
             try {
+                if (!this.gistId) {
+                    return // No gist to check yet
+                }
+
                 const newData = await this.loadMenuData()
 
                 // Check if data has changed
                 const currentLastUpdated = localStorage.getItem('menuLastUpdated')
                 if (newData.lastUpdated && newData.lastUpdated !== currentLastUpdated) {
+                    console.log('📱 Menu updated! Broadcasting to all devices...')
                     localStorage.setItem('menuLastUpdated', newData.lastUpdated)
 
-                    // Dispatch update event (silent)
+                    // Dispatch update event
                     window.dispatchEvent(new CustomEvent('menuUpdated', {
                         detail: newData
                     }))
                 }
             } catch (error) {
-                // Silent error
+                console.warn('Auto-refresh error:', error)
             }
         }, 5000) // Check every 5 seconds
     }
