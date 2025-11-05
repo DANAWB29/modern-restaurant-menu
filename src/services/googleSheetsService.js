@@ -171,42 +171,15 @@ class GoogleSheetsService {
                 }
             }
 
-            // Production mode - try Google Apps Script
+            // Production mode - use JSONP approach to bypass CORS
             if (this.APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') {
                 throw new Error('Google Apps Script URL not configured')
             }
 
-            // Prepare data for Google Sheets format
-            const sheetsData = items.map(item => ({
-                id: item.id,
-                name: item.name,
-                description: item.description,
-                price: item.price,
-                category: item.category,
-                image: item.image || '',
-                featured: item.featured ? 'TRUE' : 'FALSE'
-            }))
+            // Use JSONP approach to bypass CORS completely
+            const success = await this.saveViaJSONP(items)
 
-            // Send data to Google Apps Script (production only)
-            const response = await fetch(this.APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'cors',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'updateMenu',
-                    data: sheetsData
-                })
-            })
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`)
-            }
-
-            const result = await response.json()
-
-            if (result.success) {
+            if (success) {
                 // Clear cache to force refresh
                 this.cache = null
                 this.lastFetch = null
@@ -218,7 +191,7 @@ class GoogleSheetsService {
                     message: '🚀 Menu updated! Changes are live across all devices instantly!'
                 }
             } else {
-                throw new Error(result.error || 'Unknown error from Apps Script')
+                throw new Error('JSONP request failed')
             }
 
         } catch (error) {
@@ -232,6 +205,71 @@ class GoogleSheetsService {
                 message: `❌ Failed to sync with Google Sheets: ${error.message}. Saved locally.`
             }
         }
+    }
+
+    // Save via JSONP to bypass CORS (works in all environments)
+    async saveViaJSONP(items) {
+        return new Promise((resolve) => {
+            try {
+                // Prepare data for Google Sheets format
+                const sheetsData = items.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    description: item.description,
+                    price: item.price,
+                    category: item.category,
+                    image: item.image || '',
+                    featured: item.featured ? 'TRUE' : 'FALSE'
+                }))
+
+                // Create callback function name
+                const callbackName = 'menuCallback_' + Date.now()
+
+                // Create global callback function
+                window[callbackName] = (result) => {
+                    // Clean up
+                    document.head.removeChild(script)
+                    delete window[callbackName]
+
+                    resolve(result && result.success)
+                }
+
+                // Create script element for JSONP
+                const script = document.createElement('script')
+
+                // Encode data as URL parameters
+                const params = new URLSearchParams({
+                    action: 'updateMenu',
+                    data: JSON.stringify(sheetsData),
+                    callback: callbackName
+                })
+
+                script.src = `${this.APPS_SCRIPT_URL}?${params.toString()}`
+
+                // Handle errors
+                script.onerror = () => {
+                    document.head.removeChild(script)
+                    delete window[callbackName]
+                    resolve(false)
+                }
+
+                // Add script to head to trigger request
+                document.head.appendChild(script)
+
+                // Timeout after 10 seconds
+                setTimeout(() => {
+                    if (window[callbackName]) {
+                        document.head.removeChild(script)
+                        delete window[callbackName]
+                        resolve(false)
+                    }
+                }, 10000)
+
+            } catch (error) {
+                console.error('JSONP error:', error)
+                resolve(false)
+            }
+        })
     }
 
     // Start auto-refresh for real-time updates

@@ -69,13 +69,35 @@ Add these 15 sample menu items (copy and paste into your sheet starting from row
 
 ```javascript
 // Restaurant Menu Google Apps Script API
-// Handles menu item CRUD operations with CORS support
+// Handles menu item CRUD operations with CORS support and JSONP
+
+function doGet(e) {
+  return handleRequest(e);
+}
 
 function doPost(e) {
+  return handleRequest(e);
+}
+
+function handleRequest(e) {
   try {
-    // Parse the request
-    const data = JSON.parse(e.postData.contents);
-    const action = data.action;
+    let data, action, callback;
+    
+    // Handle both POST (with CORS) and GET (JSONP) requests
+    if (e.postData && e.postData.contents) {
+      // POST request
+      const postData = JSON.parse(e.postData.contents);
+      action = postData.action;
+      data = postData;
+    } else {
+      // GET request (JSONP)
+      action = e.parameter.action;
+      callback = e.parameter.callback;
+      data = {
+        action: action,
+        data: JSON.parse(e.parameter.data || '[]')
+      };
+    }
     
     // Get the spreadsheet (replace with your Sheet ID)
     const SHEET_ID = 'YOUR_GOOGLE_SHEET_ID'; // Replace this!
@@ -83,17 +105,27 @@ function doPost(e) {
     const sheet = spreadsheet.getSheetByName('menu_items');
     
     if (action === 'updateMenu') {
-      return updateMenuItems(sheet, data.data);
+      return updateMenuItems(sheet, data.data, callback);
     }
     
-    return ContentService
-      .createTextOutput(JSON.stringify({success: false, error: 'Unknown action'}))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders({
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      });
+    const response = {success: false, error: 'Unknown action'};
+    
+    if (callback) {
+      // JSONP response
+      return ContentService
+        .createTextOutput(callback + '(' + JSON.stringify(response) + ');')
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    } else {
+      // Regular JSON response
+      return ContentService
+        .createTextOutput(JSON.stringify(response))
+        .setMimeType(ContentService.MimeType.JSON)
+        .setHeaders({
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type'
+        });
+    }
       
   } catch (error) {
     return ContentService
@@ -102,7 +134,7 @@ function doPost(e) {
   }
 }
 
-function updateMenuItems(sheet, menuItems) {
+function updateMenuItems(sheet, menuItems, callback) {
   try {
     // Clear existing data (keep headers)
     const lastRow = sheet.getLastRow();
@@ -125,24 +157,44 @@ function updateMenuItems(sheet, menuItems) {
       sheet.getRange(2, 1, rows.length, 7).setValues(rows);
     }
     
-    return ContentService
-      .createTextOutput(JSON.stringify({success: true, message: 'Menu updated successfully'}))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders({
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      });
+    const response = {success: true, message: 'Menu updated successfully'};
+    
+    if (callback) {
+      // JSONP response
+      return ContentService
+        .createTextOutput(callback + '(' + JSON.stringify(response) + ');')
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    } else {
+      // Regular JSON response
+      return ContentService
+        .createTextOutput(JSON.stringify(response))
+        .setMimeType(ContentService.MimeType.JSON)
+        .setHeaders({
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type'
+        });
+    }
       
   } catch (error) {
-    return ContentService
-      .createTextOutput(JSON.stringify({success: false, error: error.toString()}))
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders({
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      });
+    const response = {success: false, error: error.toString()};
+    
+    if (callback) {
+      // JSONP response
+      return ContentService
+        .createTextOutput(callback + '(' + JSON.stringify(response) + ');')
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    } else {
+      // Regular JSON response
+      return ContentService
+        .createTextOutput(JSON.stringify(response))
+        .setMimeType(ContentService.MimeType.JSON)
+        .setHeaders({
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type'
+        });
+    }
   }
 }
 
