@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Edit, Trash2, Save, X, Eye, EyeOff, LogOut, Shield, AlertTriangle, Download, RefreshCw } from 'lucide-react'
 import { sampleMenuItems, menuCategories } from '../data/menuData'
-import supabaseService from '../services/supabaseService'
+import googleSheetsService from '../services/googleSheetsService'
 import toast from 'react-hot-toast'
 
 const Admin = () => {
@@ -55,7 +55,7 @@ const Admin = () => {
 
     const loadMenuItems = async () => {
         try {
-            const data = await supabaseService.loadMenuData()
+            const data = await googleSheetsService.loadMenuData()
             if (data.items) {
                 setMenuItems(data.items)
             } else {
@@ -80,7 +80,7 @@ const Admin = () => {
             setMenuItems(items)
 
             // Save with Supabase service
-            const result = await supabaseService.saveMenuData(items)
+            const result = await googleSheetsService.saveMenuData(items)
 
             console.log('🔍 Save result:', result)
 
@@ -88,8 +88,8 @@ const Admin = () => {
                 toast.success(result.message)
             } else {
                 // Supabase sync failed, show the actual error
-                console.error('❌ Supabase save failed:', result.message)
-                toast.error(`Supabase Error: ${result.message}`)
+                console.error('❌ Google Sheets save failed:', result.message)
+                toast.error(`Google Sheets Error: ${result.message}`)
                 downloadMenuFile(items)
             }
         } catch (error) {
@@ -424,29 +424,7 @@ const Admin = () => {
                             <span>Refresh</span>
                         </motion.button>
 
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={async () => {
-                                console.log('🧪 Testing Supabase connection manually...')
-                                try {
-                                    const status = supabaseService.getStatus()
-                                    console.log('📊 Service status:', status)
 
-                                    const testResult = await supabaseService.initialize()
-                                    console.log('🔍 Initialize result:', testResult)
-
-                                    toast.success('Check console for connection details')
-                                } catch (error) {
-                                    console.error('❌ Test failed:', error)
-                                    toast.error('Connection test failed - check console')
-                                }
-                            }}
-                            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center space-x-2"
-                        >
-                            <span>🧪</span>
-                            <span>Test DB</span>
-                        </motion.button>
 
                         <motion.button
                             whileHover={{ scale: 1.05 }}
@@ -474,8 +452,8 @@ const Admin = () => {
                                 <h3 className="text-green-400 font-semibold">Restaurant Admin Device</h3>
                                 <p className="text-dark-400 text-sm">
                                     {realtimeStatus?.isConfigured
-                                        ? '🚀 Supabase connected! Real-time updates enabled across all devices.'
-                                        : '⚙️ Configure Supabase for real-time sync. See SUPABASE_SETUP_GUIDE.md'
+                                        ? '🚀 Google Sheets connected! Real-time updates enabled across all devices.'
+                                        : '⚙️ Configure Google Sheets for real-time sync. See setup guide below.'
                                     }
                                 </p>
                             </div>

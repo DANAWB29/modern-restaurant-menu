@@ -7,7 +7,7 @@ import FeaturedCarousel from '../components/FeaturedCarousel'
 import MenuCard from '../components/MenuCard'
 import MenuFilters from '../components/MenuFilters'
 import { sampleMenuItems, menuCategories, restaurantConfig } from '../data/menuData'
-import supabaseService from '../services/supabaseService'
+import googleSheetsService from '../services/googleSheetsService'
 import toast from 'react-hot-toast'
 
 const Home = () => {
@@ -48,15 +48,15 @@ const Home = () => {
 
         return () => {
             window.removeEventListener('menuUpdated', handleMenuUpdate)
-            if (supabaseService.cleanup) {
-                supabaseService.cleanup()
+            if (googleSheetsService.cleanup) {
+                googleSheetsService.cleanup()
             }
         }
     }, [])
 
     const initializeRealtimeMenu = async () => {
         try {
-            const data = await supabaseService.initialize()
+            const data = await googleSheetsService.initialize()
             if (data.items) {
                 setMenuItems(data.items)
             }
