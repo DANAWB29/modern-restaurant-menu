@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Edit, Trash2, Save, X, Eye, EyeOff, LogOut, Shield, AlertTriangle, Download, RefreshCw } from 'lucide-react'
 import { sampleMenuItems, menuCategories } from '../data/menuData'
-import googleSheetsService from '../services/googleSheetsService'
+import reliableMenuService from '../services/reliableMenuService'
 import toast from 'react-hot-toast'
 
 const Admin = () => {
@@ -55,7 +55,7 @@ const Admin = () => {
 
     const loadMenuItems = async () => {
         try {
-            const data = await googleSheetsService.loadMenuData()
+            const data = await reliableMenuService.loadMenuData()
             if (data.items) {
                 setMenuItems(data.items)
             } else {
@@ -80,7 +80,7 @@ const Admin = () => {
             setMenuItems(items)
 
             // Save with Supabase service
-            const result = await googleSheetsService.saveMenuData(items)
+            const result = await reliableMenuService.saveMenuData(items)
 
             console.log('🔍 Save result:', result)
 
@@ -88,8 +88,8 @@ const Admin = () => {
                 toast.success(result.message)
             } else {
                 // Supabase sync failed, show the actual error
-                console.error('❌ Google Sheets save failed:', result.message)
-                toast.error(`Google Sheets Error: ${result.message}`)
+                console.error('❌ Menu save failed:', result.message)
+                toast.error(`Save Error: ${result.message}`)
                 downloadMenuFile(items)
             }
         } catch (error) {
@@ -451,10 +451,7 @@ const Admin = () => {
                             <div>
                                 <h3 className="text-green-400 font-semibold">Restaurant Admin Device</h3>
                                 <p className="text-dark-400 text-sm">
-                                    {realtimeStatus?.isConfigured
-                                        ? '🚀 Google Sheets connected! Real-time updates enabled across all devices.'
-                                        : '⚙️ Configure Google Sheets for real-time sync. See setup guide below.'
-                                    }
+                                    🚀 Real-time sync enabled! Changes appear instantly across all browser tabs and devices.
                                 </p>
                             </div>
                         </div>

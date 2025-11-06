@@ -7,25 +7,29 @@ import FeaturedCarousel from '../components/FeaturedCarousel'
 import MenuCard from '../components/MenuCard'
 import MenuFilters from '../components/MenuFilters'
 import { sampleMenuItems, menuCategories, restaurantConfig } from '../data/menuData'
-import googleSheetsService from '../services/googleSheetsService'
+import reliableMenuService from '../services/reliableMenuService'
 import toast from 'react-hot-toast'
 
 const Home = () => {
     const [menuItems, setMenuItems] = useState(sampleMenuItems)
     const [categories, setCategories] = useState(menuCategories)
     const [activeCategory, setActiveCategory] = useState('all')
-    const [priceRange, setPriceRange] = useState({ id: 'all', min: 0, max: Infinity })
+    const [priceRange, setPriceRange] = useState({ id: 'all', label: 'All Prices', min: 0, max: Infinity })
     const [loading, setLoading] = useState(true)
 
     // Get featured items
     const featuredItems = menuItems.filter(item => item.featured)
 
-    // Filter menu items
+    // Filter menu items with safety checks
     const filteredItems = menuItems.filter(item => {
+        if (!item) return false
+
         const matchesCategory = activeCategory === 'all' || item.category === activeCategory
         const matchesPrice = item.price >= priceRange.min && item.price <= priceRange.max
         return matchesCategory && matchesPrice
     })
+
+
 
     // Load menu items from real-time service
     useEffect(() => {
@@ -48,15 +52,15 @@ const Home = () => {
 
         return () => {
             window.removeEventListener('menuUpdated', handleMenuUpdate)
-            if (googleSheetsService.cleanup) {
-                googleSheetsService.cleanup()
+            if (reliableMenuService.cleanup) {
+                reliableMenuService.cleanup()
             }
         }
     }, [])
 
     const initializeRealtimeMenu = async () => {
         try {
-            const data = await googleSheetsService.initialize()
+            const data = await reliableMenuService.initialize()
             if (data.items) {
                 setMenuItems(data.items)
             }
