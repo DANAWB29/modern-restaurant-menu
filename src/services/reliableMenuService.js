@@ -90,8 +90,8 @@ class ReliableMenuService {
             this.lastFetch = Date.now()
 
             // Broadcast update to other tabs/windows
+            console.log('📡 About to broadcast update...')
             this.broadcastUpdate(menuData)
-
             console.log('✅ Menu saved successfully!')
 
             return {

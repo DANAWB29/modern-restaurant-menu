@@ -36,9 +36,11 @@ const Home = () => {
 
         // Listen for real-time menu updates
         const handleMenuUpdate = (event) => {
+            console.log('✅ Menu update received!')
             const newData = event.detail
             if (newData.items) {
                 setMenuItems(newData.items)
+                console.log('Updated to', newData.items.length, 'items')
             }
             if (newData.categories) {
                 setCategories(newData.categories)
@@ -46,6 +48,7 @@ const Home = () => {
         }
 
         window.addEventListener('menuUpdated', handleMenuUpdate)
+        console.log('👂 Listening for menu updates...')
 
         return () => {
             window.removeEventListener('menuUpdated', handleMenuUpdate)

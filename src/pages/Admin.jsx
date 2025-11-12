@@ -85,6 +85,8 @@ const Admin = () => {
             console.log('🔍 Save result:', result)
 
             if (result.success) {
+                // Update the local state immediately
+                setMenuItems(items)
                 toast.success(result.message)
             } else {
                 // Supabase sync failed, show the actual error
