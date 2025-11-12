@@ -20,18 +20,11 @@ const Home = () => {
     // Get featured items
     const featuredItems = menuItems.filter(item => item.featured)
 
-    // Filter menu items with safety checks
+    // Filter menu items
     const filteredItems = menuItems.filter(item => {
         if (!item) return false
-
         const matchesCategory = activeCategory === 'all' || item.category === activeCategory
         const matchesPrice = item.price >= priceRange.min && item.price <= priceRange.max
-
-        // Debug logging for troubleshooting
-        if (activeCategory === 'breakfast' || activeCategory === 'desserts') {
-            console.log(`Item: ${item.name}, Category: ${item.category}, Matches: ${matchesCategory}`)
-        }
-
         return matchesCategory && matchesPrice
     })
 
@@ -39,60 +32,23 @@ const Home = () => {
 
     // Load menu items from real-time service
     useEffect(() => {
-        console.log('🚀 Home.jsx: Setting up real-time menu sync...')
         initializeRealtimeMenu()
 
         // Listen for real-time menu updates
         const handleMenuUpdate = (event) => {
-            console.log('🔄 Home.jsx received menu update event!')
-            console.log('📦 Event detail:', event.detail)
             const newData = event.detail
-            if (newData && newData.items) {
-                console.log('✅ Updating menu items:', newData.items.length, 'items')
+            if (newData.items) {
                 setMenuItems(newData.items)
-                toast.success('Menu updated!')
             }
-            if (newData && newData.categories) {
+            if (newData.categories) {
                 setCategories(newData.categories)
             }
         }
 
-        // Listen for storage changes (cross-tab)
-        const handleStorageChange = (e) => {
-            if (e.key === 'menuUpdateBroadcast' && e.newValue) {
-                console.log('💾 Storage change detected!')
-                try {
-                    const update = JSON.parse(e.newValue)
-                    if (update.data && update.data.items) {
-                        console.log('✅ Updating from storage:', update.data.items.length, 'items')
-                        setMenuItems(update.data.items)
-                        toast.success('Menu updated from another tab!')
-                    }
-                } catch (error) {
-                    console.error('Error parsing storage update:', error)
-                }
-            }
-        }
-
-        // Listen for page visibility changes
-        const handleVisibilityChange = () => {
-            if (!document.hidden) {
-                console.log('👁️ Page became visible, reloading menu...')
-                initializeRealtimeMenu()
-            }
-        }
-
         window.addEventListener('menuUpdated', handleMenuUpdate)
-        window.addEventListener('storage', handleStorageChange)
-        document.addEventListener('visibilitychange', handleVisibilityChange)
-
-        console.log('✅ Event listeners registered')
 
         return () => {
-            console.log('🧹 Cleaning up event listeners')
             window.removeEventListener('menuUpdated', handleMenuUpdate)
-            window.removeEventListener('storage', handleStorageChange)
-            document.removeEventListener('visibilitychange', handleVisibilityChange)
             if (reliableMenuService.cleanup) {
                 reliableMenuService.cleanup()
             }
