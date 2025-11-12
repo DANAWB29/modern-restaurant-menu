@@ -100,45 +100,83 @@ class GoogleSheetsReadService {
         }
     }
 
-    // Save menu data (saves to localStorage and shows message)
+    // Save menu data to Google Sheets via Apps Script
     async saveMenuData(items) {
         try {
-            console.log('💾 Saving', items.length, 'items...')
+            console.log('💾 Saving', items.length, 'items to Google Sheets...')
 
-            // Save to localStorage
-            localStorage.setItem('menuItems', JSON.stringify(items))
+            // Your Google Apps Script URL
+            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKjkuFG-ek1cwW_94k3Te7pQ0cfDSOsfmROykxrEcq4EW_CEDKTxtX6Eca1gD1gMgp/exec'
 
-            // Create menu data
-            const menuData = {
-                lastUpdated: new Date().toISOString(),
-                syncId: Date.now(),
-                categories: this.getCategories(),
-                items: items
-            }
-
-            localStorage.setItem('menuDataBackup', JSON.stringify(menuData))
-
-            // Update cache
-            this.cache = menuData
-            this.lastFetch = Date.now()
-
-            // Broadcast to other tabs
-            window.dispatchEvent(new CustomEvent('menuUpdated', {
-                detail: menuData
+            // Prepare data for Google Sheets
+            const sheetsData = items.map(item => ({
+                id: item.id,
+                name: item.name,
+                description: item.description,
+                price: item.price,
+                category: item.category,
+                image: item.image || '',
+                featured: item.featured ? 'TRUE' : 'FALSE'
             }))
 
-            console.log('✅ Menu saved locally!')
+            // Use form data to avoid CORS preflight
+            const formData = new URLSearchParams()
+            formData.append('action', 'updateMenu')
+            formData.append('data', JSON.stringify(sheetsData))
 
-            return {
-                success: true,
-                message: '✅ Menu saved! To sync across devices, update your Google Sheet manually.'
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: formData
+            })
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`)
+            }
+
+            const result = await response.json()
+
+            if (result.success) {
+                // Clear cache to force refresh
+                this.cache = null
+                this.lastFetch = null
+
+                // Save backup locally
+                localStorage.setItem('menuItems', JSON.stringify(items))
+
+                // Create menu data
+                const menuData = {
+                    lastUpdated: new Date().toISOString(),
+                    syncId: Date.now(),
+                    categories: this.getCategories(),
+                    items: items
+                }
+
+                localStorage.setItem('menuDataBackup', JSON.stringify(menuData))
+
+                // Broadcast to other tabs
+                window.dispatchEvent(new CustomEvent('menuUpdated', {
+                    detail: menuData
+                }))
+
+                console.log('✅ Menu saved to Google Sheets!')
+
+                return {
+                    success: true,
+                    message: '🚀 Menu updated! Changes are live across ALL devices within 10 seconds!'
+                }
+            } else {
+                throw new Error(result.error || 'Unknown error')
             }
 
         } catch (error) {
-            console.error('❌ Error saving menu:', error)
+            console.error('❌ Error saving to Google Sheets:', error)
+
+            // Fallback to local storage
+            localStorage.setItem('menuItems', JSON.stringify(items))
+
             return {
                 success: false,
-                message: `❌ Failed to save: ${error.message}`
+                message: `❌ Failed to sync to Google Sheets: ${error.message}. Saved locally.`
             }
         }
     }
