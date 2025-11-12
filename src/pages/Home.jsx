@@ -7,7 +7,7 @@ import FeaturedCarousel from '../components/FeaturedCarousel'
 import MenuCard from '../components/MenuCard'
 import MenuFilters from '../components/MenuFilters'
 import { sampleMenuItems, menuCategories, restaurantConfig } from '../data/menuData'
-import reliableMenuService from '../services/reliableMenuService'
+import crossDeviceService from '../services/crossDeviceService'
 import toast from 'react-hot-toast'
 
 const Home = () => {
@@ -52,15 +52,15 @@ const Home = () => {
 
         return () => {
             window.removeEventListener('menuUpdated', handleMenuUpdate)
-            if (reliableMenuService.cleanup) {
-                reliableMenuService.cleanup()
+            if (crossDeviceService.cleanup) {
+                crossDeviceService.cleanup()
             }
         }
     }, [])
 
     const initializeRealtimeMenu = async () => {
         try {
-            const data = await reliableMenuService.initialize()
+            const data = await crossDeviceService.initialize()
             if (data.items) {
                 setMenuItems(data.items)
             }

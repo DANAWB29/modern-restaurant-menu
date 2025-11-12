@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Edit, Trash2, Save, X, Eye, EyeOff, LogOut, Shield, AlertTriangle, Download, RefreshCw } from 'lucide-react'
 import { sampleMenuItems, menuCategories } from '../data/menuData'
-import reliableMenuService from '../services/reliableMenuService'
+import crossDeviceService from '../services/crossDeviceService'
 import toast from 'react-hot-toast'
 
 const Admin = () => {
@@ -28,34 +28,18 @@ const Admin = () => {
         featured: false
     })
 
-    // Generate or get device ID
+    // Check authentication on mount
     useEffect(() => {
-        let storedDeviceId = localStorage.getItem('deviceId')
-        if (!storedDeviceId) {
-            // Generate unique device ID
-            storedDeviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
-            localStorage.setItem('deviceId', storedDeviceId)
-        }
-        setDeviceId(storedDeviceId)
-
-        // Check if this is a registered restaurant device
-        const restaurantDeviceId = localStorage.getItem('restaurantDeviceId')
-        const isRegistered = restaurantDeviceId === storedDeviceId
-        setIsRestaurantDevice(isRegistered)
-
-        // Check authentication only for restaurant devices
-        if (isRegistered) {
-            const savedAuth = localStorage.getItem('adminAuthenticated')
-            if (savedAuth === 'true') {
-                setIsAuthenticated(true)
-                loadMenuItems()
-            }
+        const savedAuth = localStorage.getItem('adminAuthenticated')
+        if (savedAuth === 'true') {
+            setIsAuthenticated(true)
+            loadMenuItems()
         }
     }, [])
 
     const loadMenuItems = async () => {
         try {
-            const data = await reliableMenuService.loadMenuData()
+            const data = await crossDeviceService.loadMenuData()
             if (data.items) {
                 setMenuItems(data.items)
             } else {
@@ -80,7 +64,7 @@ const Admin = () => {
             setMenuItems(items)
 
             // Save with Supabase service
-            const result = await reliableMenuService.saveMenuData(items)
+            const result = await crossDeviceService.saveMenuData(items)
 
             console.log('🔍 Save result:', result)
 
@@ -137,28 +121,19 @@ const Admin = () => {
 
 
 
-    const registerAsRestaurantDevice = () => {
-        localStorage.setItem('restaurantDeviceId', deviceId)
-        setIsRestaurantDevice(true)
-        setShowDeviceSetup(false)
-        toast.success('Device registered as restaurant admin device!')
-    }
+
 
     const handleLogin = () => {
-        // Enhanced password check with device verification
+        // Simple password check - works on all devices
         const validPasswords = ['admin123', 'restaurant2024', 'golden_spoon_admin']
 
         if (validPasswords.includes(password)) {
-            if (!isRestaurantDevice) {
-                // First time login - register this device
-                registerAsRestaurantDevice()
-            }
             setIsAuthenticated(true)
             localStorage.setItem('adminAuthenticated', 'true')
             loadMenuItems()
             toast.success('Welcome to Restaurant Admin Panel!')
         } else {
-            toast.error('Invalid password. Contact restaurant owner for access.')
+            toast.error('Invalid password.')
         }
     }
 
@@ -235,89 +210,7 @@ const Admin = () => {
         setShowAddForm(false)
     }
 
-    // Device not registered screen
-    if (!isRestaurantDevice && !isAuthenticated) {
-        return (
-            <div className="min-h-screen flex items-center justify-center pt-20">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="glass-effect rounded-2xl p-8 w-full max-w-lg"
-                >
-                    <div className="text-center mb-8">
-                        <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 0.2 }}
-                            className="w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                        >
-                            <Shield className="w-8 h-8 text-white" />
-                        </motion.div>
-                        <h1 className="text-3xl font-bold text-red-400 mb-2">Restaurant Admin Only</h1>
-                        <p className="text-dark-300 mb-4">This admin panel is restricted to restaurant devices only.</p>
-                    </div>
-
-                    <div className="space-y-6">
-                        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-                            <div className="flex items-start space-x-3">
-                                <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <h3 className="text-red-300 font-semibold mb-2">Access Restricted</h3>
-                                    <p className="text-red-200 text-sm leading-relaxed">
-                                        This admin panel can only be accessed from the restaurant's registered device.
-                                        Menu changes will only affect this specific device and won't impact other customers' views.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-dark-800/50 rounded-xl p-4">
-                            <h3 className="text-dark-200 font-semibold mb-2">Device Information</h3>
-                            <p className="text-dark-400 text-sm font-mono">Device ID: {deviceId}</p>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="relative">
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    placeholder="Enter restaurant admin password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full px-4 py-4 bg-dark-800/50 border border-dark-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-white pr-12"
-                                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-dark-400 hover:text-dark-200"
-                                >
-                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
-                            </div>
-
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={handleLogin}
-                                className="w-full btn-primary"
-                            >
-                                Register as Restaurant Device
-                            </motion.button>
-                        </div>
-
-                        <div className="bg-primary-500/10 border border-primary-500/20 rounded-xl p-4">
-                            <p className="text-primary-300 text-sm text-center">
-                                <strong>Restaurant Owner:</strong> Use your admin password to register this device.<br />
-                                Once registered, only this device can modify the menu.
-                            </p>
-                        </div>
-                    </div>
-                </motion.div>
-            </div>
-        )
-    }
-
-    // Login Screen for registered devices
+    // Login Screen
     if (!isAuthenticated) {
         return (
             <div className="min-h-screen flex items-center justify-center pt-20">
@@ -336,12 +229,7 @@ const Admin = () => {
                             <span className="text-2xl">🔐</span>
                         </motion.div>
                         <h1 className="text-3xl font-bold text-primary-400 mb-2">Restaurant Admin</h1>
-                        <p className="text-dark-300">Welcome back! Enter your password to continue.</p>
-
-                        <div className="mt-4 flex items-center justify-center space-x-2 text-green-400">
-                            <Shield className="w-4 h-4" />
-                            <span className="text-sm">Registered Restaurant Device</span>
-                        </div>
+                        <p className="text-dark-300">Enter your password to continue.</p>
                     </div>
 
                     <div className="space-y-6">
@@ -373,11 +261,7 @@ const Admin = () => {
                         </motion.button>
                     </div>
 
-                    <div className="mt-6 bg-dark-800/50 rounded-xl p-4">
-                        <p className="text-dark-400 text-xs text-center">
-                            Device ID: <span className="font-mono">{deviceId}</span>
-                        </p>
-                    </div>
+
                 </motion.div>
             </div>
         )
@@ -440,26 +324,20 @@ const Admin = () => {
                     </div>
                 </div>
 
-                {/* Device Info Banner */}
+                {/* Sync Status Banner */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 }}
                     className="glass-effect rounded-xl p-4 mb-8 border border-green-500/20"
                 >
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                            <Shield className="w-5 h-5 text-green-400" />
-                            <div>
-                                <h3 className="text-green-400 font-semibold">Restaurant Admin Device</h3>
-                                <p className="text-dark-400 text-sm">
-                                    🚀 Real-time sync enabled! Changes appear instantly across all browser tabs and devices.
-                                </p>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-dark-400 text-xs">Device ID</p>
-                            <p className="text-dark-300 font-mono text-sm">{deviceId}</p>
+                    <div className="flex items-center space-x-3">
+                        <Shield className="w-5 h-5 text-green-400" />
+                        <div>
+                            <h3 className="text-green-400 font-semibold">Cloud Sync Enabled</h3>
+                            <p className="text-dark-400 text-sm">
+                                🚀 Changes sync instantly across ALL devices worldwide!
+                            </p>
                         </div>
                     </div>
                 </motion.div>
