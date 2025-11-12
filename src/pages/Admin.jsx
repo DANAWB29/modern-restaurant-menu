@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Edit, Trash2, Save, X, Eye, EyeOff, LogOut, Shield, AlertTriangle, Download, RefreshCw } from 'lucide-react'
 import { sampleMenuItems, menuCategories } from '../data/menuData'
-import reliableMenuService from '../services/reliableMenuService'
+import googleSheetsReadService from '../services/googleSheetsReadService'
 import toast from 'react-hot-toast'
 
 const Admin = () => {
@@ -39,7 +39,7 @@ const Admin = () => {
 
     const loadMenuItems = async () => {
         try {
-            const data = await reliableMenuService.loadMenuData()
+            const data = await googleSheetsReadService.loadMenuData()
             if (data.items) {
                 setMenuItems(data.items)
             } else {
@@ -64,7 +64,7 @@ const Admin = () => {
             setMenuItems(items)
 
             // Save with Supabase service
-            const result = await reliableMenuService.saveMenuData(items)
+            const result = await googleSheetsReadService.saveMenuData(items)
 
             console.log('🔍 Save result:', result)
 
@@ -334,9 +334,9 @@ const Admin = () => {
                     <div className="flex items-center space-x-3">
                         <Shield className="w-5 h-5 text-green-400" />
                         <div>
-                            <h3 className="text-green-400 font-semibold">Real-Time Sync Active</h3>
+                            <h3 className="text-green-400 font-semibold">Google Sheets Connected</h3>
                             <p className="text-dark-400 text-sm">
-                                🚀 Changes sync instantly across all browser tabs!
+                                🚀 Reading from Google Sheets! All devices see the same menu. Update your sheet to sync changes.
                             </p>
                         </div>
                     </div>
