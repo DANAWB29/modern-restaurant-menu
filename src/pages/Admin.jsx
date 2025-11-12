@@ -584,17 +584,65 @@ const Admin = () => {
 
                                 <div>
                                     <label className="block text-white font-semibold mb-2">
-                                        Image URL
+                                        Image
                                     </label>
-                                    <input
-                                        type="url"
-                                        value={formData.image}
-                                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                        placeholder="https://images.unsplash.com/..."
-                                        className="w-full px-4 py-3 bg-dark-800/50 border border-dark-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-white"
-                                    />
-                                    <p className="text-dark-400 text-sm mt-1">
-                                        Use Unsplash or other image URLs. Leave empty for default image.
+
+                                    {/* Image Preview */}
+                                    {formData.image && (
+                                        <div className="mb-3">
+                                            <img
+                                                src={formData.image}
+                                                alt="Preview"
+                                                className="w-full h-48 object-cover rounded-xl"
+                                                onError={(e) => {
+                                                    e.target.src = 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400&h=300&fit=crop'
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* File Upload */}
+                                    <div className="space-y-3">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={async (e) => {
+                                                const file = e.target.files[0]
+                                                if (file) {
+                                                    // Check file size (max 2MB)
+                                                    if (file.size > 2 * 1024 * 1024) {
+                                                        toast.error('Image too large! Please use an image under 2MB.')
+                                                        return
+                                                    }
+
+                                                    // Convert to base64
+                                                    const reader = new FileReader()
+                                                    reader.onloadend = () => {
+                                                        setFormData({ ...formData, image: reader.result })
+                                                        toast.success('Image uploaded successfully!')
+                                                    }
+                                                    reader.onerror = () => {
+                                                        toast.error('Failed to upload image')
+                                                    }
+                                                    reader.readAsDataURL(file)
+                                                }
+                                            }}
+                                            className="w-full px-4 py-3 bg-dark-800/50 border border-dark-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-500 file:text-dark-900 hover:file:bg-primary-600 file:cursor-pointer"
+                                        />
+
+                                        <div className="text-center text-dark-400 text-sm">OR</div>
+
+                                        <input
+                                            type="url"
+                                            value={formData.image?.startsWith('data:') ? '' : formData.image}
+                                            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                                            placeholder="https://images.unsplash.com/..."
+                                            className="w-full px-4 py-3 bg-dark-800/50 border border-dark-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-white"
+                                        />
+                                    </div>
+
+                                    <p className="text-dark-400 text-sm mt-2">
+                                        Upload an image (max 2MB) or paste an image URL from Unsplash.
                                     </p>
                                 </div>
 

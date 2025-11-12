@@ -26,6 +26,12 @@ const Home = () => {
 
         const matchesCategory = activeCategory === 'all' || item.category === activeCategory
         const matchesPrice = item.price >= priceRange.min && item.price <= priceRange.max
+
+        // Debug logging for troubleshooting
+        if (activeCategory === 'breakfast' || activeCategory === 'desserts') {
+            console.log(`Item: ${item.name}, Category: ${item.category}, Matches: ${matchesCategory}`)
+        }
+
         return matchesCategory && matchesPrice
     })
 

@@ -23,15 +23,9 @@ class ReliableMenuService {
     // Load menu data
     async loadMenuData() {
         try {
-            // Check cache first
-            if (this.cache && this.lastFetch && (Date.now() - this.lastFetch < this.cacheTimeout)) {
-                console.log('📋 Using cached menu data')
-                return this.cache
-            }
-
             console.log('📡 Loading menu data...')
 
-            // Load from localStorage
+            // Always load fresh data from localStorage (no cache for loading)
             const savedData = localStorage.getItem('menuDataBackup')
             if (savedData) {
                 try {
