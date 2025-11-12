@@ -39,25 +39,60 @@ const Home = () => {
 
     // Load menu items from real-time service
     useEffect(() => {
+        console.log('🚀 Home.jsx: Setting up real-time menu sync...')
         initializeRealtimeMenu()
 
         // Listen for real-time menu updates
         const handleMenuUpdate = (event) => {
-            console.log('🔄 Home.jsx received menu update:', event.detail)
+            console.log('🔄 Home.jsx received menu update event!')
+            console.log('📦 Event detail:', event.detail)
             const newData = event.detail
-            if (newData.items) {
+            if (newData && newData.items) {
+                console.log('✅ Updating menu items:', newData.items.length, 'items')
                 setMenuItems(newData.items)
-                console.log('📱 Menu items updated in Home.jsx:', newData.items.length, 'items')
+                toast.success('Menu updated!')
             }
-            if (newData.categories) {
+            if (newData && newData.categories) {
                 setCategories(newData.categories)
             }
         }
 
+        // Listen for storage changes (cross-tab)
+        const handleStorageChange = (e) => {
+            if (e.key === 'menuUpdateBroadcast' && e.newValue) {
+                console.log('💾 Storage change detected!')
+                try {
+                    const update = JSON.parse(e.newValue)
+                    if (update.data && update.data.items) {
+                        console.log('✅ Updating from storage:', update.data.items.length, 'items')
+                        setMenuItems(update.data.items)
+                        toast.success('Menu updated from another tab!')
+                    }
+                } catch (error) {
+                    console.error('Error parsing storage update:', error)
+                }
+            }
+        }
+
+        // Listen for page visibility changes
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                console.log('👁️ Page became visible, reloading menu...')
+                initializeRealtimeMenu()
+            }
+        }
+
         window.addEventListener('menuUpdated', handleMenuUpdate)
+        window.addEventListener('storage', handleStorageChange)
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+
+        console.log('✅ Event listeners registered')
 
         return () => {
+            console.log('🧹 Cleaning up event listeners')
             window.removeEventListener('menuUpdated', handleMenuUpdate)
+            window.removeEventListener('storage', handleStorageChange)
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
             if (reliableMenuService.cleanup) {
                 reliableMenuService.cleanup()
             }

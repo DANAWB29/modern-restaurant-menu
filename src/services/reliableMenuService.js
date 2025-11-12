@@ -114,17 +114,25 @@ class ReliableMenuService {
             console.log('📡 Broadcasting update with', menuData.items?.length, 'items')
 
             // Use localStorage event for cross-tab communication
-            localStorage.setItem('menuUpdateBroadcast', JSON.stringify({
+            const broadcastData = {
                 timestamp: Date.now(),
                 data: menuData
-            }))
+            }
+            localStorage.setItem('menuUpdateBroadcast', JSON.stringify(broadcastData))
 
-            // Also use custom event for same-tab updates
+            // Dispatch custom event for same-tab updates
             window.dispatchEvent(new CustomEvent('menuUpdated', {
                 detail: menuData
             }))
 
-            console.log('✅ Update broadcasted to all tabs')
+            // Also dispatch to all windows (including current)
+            setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('menuUpdated', {
+                    detail: menuData
+                }))
+            }, 100)
+
+            console.log('✅ Update broadcasted to all tabs and windows')
         } catch (error) {
             console.warn('Could not broadcast update:', error)
         }
